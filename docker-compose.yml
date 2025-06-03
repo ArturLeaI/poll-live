@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    container_name: live-poll-app
+    ports:
+      - "3000:3000"
+    command: npm run start:dev
+    depends_on:
+      - db
+    environment:
+      - NODE_ENV=development
+      - MONGODB_URI=mongodb://db:27017/pollsdb
+    develop:
+      watch:
+        - action: sync
+          path: .
+          target: /app
+          ignore:
+            - node_modules/
+        - action: rebuild
+          path: package.json
+
+  db:
+    image: mongo:6
+    container_name: live-poll-mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: pollsdb
+    volumes:
+      - mongodb_data:/data/db
+
+volumes:
+  mongodb_data:
