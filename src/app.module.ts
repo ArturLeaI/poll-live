@@ -16,6 +16,9 @@ import { PollsModule } from './polls/polls.module';
       driver: ApolloDriver,
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
       playground: true,
+      subscriptions: {
+        'graphql-ws': true,
+      },
     })
     
   ],

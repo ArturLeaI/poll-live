@@ -1,14 +1,16 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Inject } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Poll, PollDocument } from './poll.schema';
 import { VoteOption, VoteOptionDocument } from './vote-option.schema';
+import { PubSub } from 'graphql-subscriptions';
 
 @Injectable()
 export class PollsService {
   constructor(
     @InjectModel(Poll.name) private pollModel: Model<PollDocument>,
     @InjectModel(VoteOption.name) private optionModel: Model<VoteOptionDocument>,
+    @Inject('PUB_SUB') private pubSub: PubSub,
   ) { }
 
   async createPoll(question: string, options: string[]): Promise<Poll> {
@@ -59,6 +61,14 @@ export class PollsService {
     option.votes += 1;
     await option.save();
 
-    return this.findById(pollId);
+    const updatedPoll = await this.pollModel.findById(pollId).populate('options').exec();
+
+    if (!updatedPoll) {
+      throw new NotFoundException('Poll not found');
+    }
+
+    this.pubSub.publish('pollUpdated', { pollUpdated: updatedPoll });
+
+    return updatedPoll;
   }
 }
