@@ -12,6 +12,7 @@ services:
     environment:
       - NODE_ENV=development
       - MONGODB_URI=mongodb://db:27017/pollsdb
+      - TEST_MONGODB_URI=mongodb://db:27017/pollsdb_test
     develop:
       watch:
         - action: sync
